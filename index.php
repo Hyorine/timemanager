@@ -4,8 +4,16 @@ function CalculateDueDate($submissionTime, $leadTime) {
     $businessHoursStart = 9; // 9am
     $businessHoursEnd = 17; // 5pm
 
-    // Convert submission time to a DateTime object
-    $submissionDateTime = new DateTime($submissionTime);
+    // Validate $submissionTime format
+    $submissionDateTime = DateTime::createFromFormat('Y-m-d H:i:s', $submissionTime);
+    if (!$submissionDateTime) {
+        throw new InvalidArgumentException("Érvénytelen beküldési időformátum. Használja az „Y-m-d H:i:s” formátumot.");
+    }
+
+    // Validate $leadTime
+    if (!is_int($leadTime) || $leadTime <= 0) {
+        throw new InvalidArgumentException("Az átfutási időnek pozitív egész számnak kell lennie.");
+    }
 
     // Check if the submission time is outside business hours
     if ($submissionDateTime->format('H') < $businessHoursStart) {
@@ -52,9 +60,14 @@ function CalculateDueDate($submissionTime, $leadTime) {
 }
 
 // Example usage:
-$submissionTime = '2023-08-30 16:00:00'; // Replace with your submission time
-$leadTime = 24; // Replace with your lead time in hours
+try {
+    $submissionTime = '2023-08-30 16:00:00'; // Replace with your submission time
+    $leadTime = 24; // Replace with your lead time in hours
 
-$dueDate = CalculateDueDate($submissionTime, $leadTime);
-echo "Due Date: $dueDate";
+    $dueDate = CalculateDueDate($submissionTime, $leadTime);
+    echo "Határidő: $dueDate";
+} catch (InvalidArgumentException $e) {
+    echo "Hiba: " . $e->getMessage();
+}
+
 ?>
