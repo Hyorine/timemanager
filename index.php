@@ -17,7 +17,7 @@ function CalculateDueDate($submissionTime, $leadTime) {
         $submissionDateTime->setTime($businessHoursStart, 0);
     }
 
-    // Calculate due date considering business hours
+    // Calculate due date considering business hours and excluding weekends
     while ($leadTime > 0) {
         // Calculate the time remaining in the current day's business hours
         $currentHour = $submissionDateTime->format('H');
@@ -31,7 +31,16 @@ function CalculateDueDate($submissionTime, $leadTime) {
 
         // If lead time is still remaining, move to the next business day
         if ($leadTime > 0) {
+            // Check if the next day is a weekend (Saturday or Sunday)
             $submissionDateTime->add(new DateInterval('P1D')); // Add 1 day
+            $nextDayOfWeek = $submissionDateTime->format('N'); // 1 (Monday) to 7 (Sunday)
+
+            // Skip weekends by moving to the next Monday if it's a weekend
+            while ($nextDayOfWeek >= 6) {
+                $submissionDateTime->add(new DateInterval('P1D')); // Add 1 day
+                $nextDayOfWeek = $submissionDateTime->format('N');
+            }
+
             $submissionDateTime->setTime($businessHoursStart, 0);
         }
     }
