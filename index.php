@@ -17,8 +17,24 @@ function CalculateDueDate($submissionTime, $leadTime) {
         $submissionDateTime->setTime($businessHoursStart, 0);
     }
 
-    // Add lead time to submission time
-    $submissionDateTime->add(new DateInterval("PT{$leadTime}H")); // Assuming leadTime is in hours
+    // Calculate due date considering business hours
+    while ($leadTime > 0) {
+        // Calculate the time remaining in the current day's business hours
+        $currentHour = $submissionDateTime->format('H');
+        $hoursRemaining = min($businessHoursEnd - $currentHour, $leadTime);
+
+        // Add the remaining hours to the submission time
+        $submissionDateTime->add(new DateInterval("PT{$hoursRemaining}H"));
+
+        // Update lead time
+        $leadTime -= $hoursRemaining;
+
+        // If lead time is still remaining, move to the next business day
+        if ($leadTime > 0) {
+            $submissionDateTime->add(new DateInterval('P1D')); // Add 1 day
+            $submissionDateTime->setTime($businessHoursStart, 0);
+        }
+    }
 
     // Format the due date as desired (e.g., 'Y-m-d H:i:s')
     $dueDate = $submissionDateTime->format('Y-m-d H:i:s');
@@ -27,7 +43,7 @@ function CalculateDueDate($submissionTime, $leadTime) {
 }
 
 // Example usage:
-$submissionTime = '2023-08-28 16:00:00'; // Replace with your submission time
+$submissionTime = '2023-08-30 16:00:00'; // Replace with your submission time
 $leadTime = 24; // Replace with your lead time in hours
 
 $dueDate = CalculateDueDate($submissionTime, $leadTime);
